@@ -1,0 +1,106 @@
+/* You can add global styles to this file, and also import other style files */
+/* ====== Tema base ====== */
+:root{
+  --bg: #0b1020;
+  --panel: #0f172a;
+  --panel-2: #111827;
+  --border: #1f2937;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --brand: #60a5fa;   /* azul */
+  --ok: #22c55e;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --white: #ffffff;
+}
+
+*{ box-sizing: border-box; }
+html, body{ height: 100%; }
+body{
+  margin:0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  background: #f6f7fb;
+  color:#111827;
+}
+
+/* ====== Utilidades ====== */
+.contenedor{ max-width: 1120px; margin: 1.25rem auto; padding: 0 1rem; }
+.tarjeta{
+  background: #fff; border:1px solid #e5e7eb; border-radius: 12px; padding: 1rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04);
+}
+.grid{ display:grid; gap: .75rem; }
+.grid-3{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+@media (max-width: 900px){ .grid-3{ grid-template-columns: 1fr; } }
+
+/* ====== Inputs ====== */
+input, select, textarea{
+  width:100%; padding:.6rem .7rem; border:1px solid #e5e7eb; border-radius:10px; background:#fff; color:#111827;
+  outline: none; transition: box-shadow .15s ease, border-color .15s ease;
+}
+input:focus, select:focus, textarea:focus{
+  border-color: #93c5fd; box-shadow: 0 0 0 4px rgba(59,130,246,.15);
+}
+label span{ font-weight:600; font-size:.92rem; color:#374151; }
+.error{ color:#dc2626; font-size:.86rem; }
+
+/* ====== Botones ====== */
+button{ cursor:pointer; border:1px solid transparent; border-radius:10px; padding:.55rem .9rem; font-weight:600; }
+.btn{ background:#0f172a; color:#e5e7eb; }
+.btn:hover{ background:#111827; }
+.btn-outline{ background:#fff; border-color:#e5e7eb; color:#111827; }
+.btn-outline:hover{ background:#f9fafb; }
+.btn-ghost{ background:transparent; color:#111827; }
+.btn-danger{ background: var(--danger); color: var(--white); }
+.btn-danger:hover{ filter: brightness(.95); }
+.btn-warn{ background: var(--warn); color: #111827; }
+.btn-ok{ background: var(--ok); color: #052e16; }
+button[disabled]{ opacity:.6; cursor:not-allowed; }
+
+/* Enlaces */
+a{ color:#2563eb; text-decoration:none; }
+a:hover{ text-decoration: underline; }
+
+/* ====== Badges ====== */
+.badge{ display:inline-flex; align-items:center; gap:.35rem; padding:.12rem .5rem; border-radius: 999px; font-size:.78rem; font-weight:700; border:1px solid transparent; }
+.badge-ok{ background:#dcfce7; color:#166534; border-color:#bbf7d0; }
+.badge-warn{ background:#fef3c7; color:#92400e; border-color:#fde68a; }
+.badge-danger{ background:#fee2e2; color:#991b1b; border-color:#fecaca; }
+
+/* ====== Tablas ====== */
+.tabla-wrapper{ background:#fff; border:1px solid #e5e7eb; border-radius:12px; overflow:hidden; }
+.tabla{ width:100%; border-collapse: collapse; }
+.tabla th{ background:#f9fafb; text-align:left; font-size:.9rem; color:#374151; border-bottom:1px solid #e5e7eb; padding:.7rem .8rem; }
+.tabla td{ border-bottom:1px solid #f1f5f9; padding:.65rem .8rem; }
+.tabla tr:hover td{ background:#fafafa; }
+
+/* ====== Paginado ====== */
+.paginado{ display:flex; gap:.5rem; align-items:center; justify-content:flex-end; padding:.7rem .8rem; }
+.paginado .info{ color:#6b7280; font-size:.9rem; }
+
+/* ====== Panel lateral (layout) ====== */
+.layout{ display:grid; grid-template-columns: 260px 1fr; min-height:100vh; }
+.sidebar{
+  background: var(--panel);
+  color: var(--text);
+  padding: 1rem; display:flex; flex-direction:column; gap:.8rem; border-right:1px solid var(--border);
+}
+.brand{ margin:0; color:#fff; letter-spacing:.2px; }
+.usuario-box{
+  background: var(--panel-2); border:1px solid var(--border); border-radius:12px; padding:.75rem .8rem;
+}
+.menu{ display:flex; flex-direction:column; gap:.2rem; margin-top:.25rem; }
+.menu-item{
+  color: var(--text); text-decoration:none; padding:.55rem .6rem; border-radius:10px; display:flex; gap:.55rem; align-items:center;
+}
+.menu-item:hover{ background:#182235; }
+.menu-item.active{ background:#22304a; }
+
+/* ====== Modal ====== */
+.modal{ position: fixed; inset:0; background: rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; padding: 1rem; z-index: 50; }
+.modal-content{ background:#fff; width:min(560px, 100%); border-radius:12px; padding:1rem; border:1px solid #e5e7eb; max-height:85vh; overflow:auto; }
+
+/* ====== Cabeceras ====== */
+.h1{ font-size:1.35rem; margin:.2rem 0 .9rem; }
+.toolbar{ display:flex; gap:.5rem; align-items:center; justify-content:space-between; margin-bottom:.6rem; flex-wrap:wrap; }
+.toolbar .filtros{ display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }

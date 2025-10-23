@@ -1,5 +1,5 @@
 const { crearUsuario, actualizarUsuario, eliminarUsuarioLogico } = require('../../../Aplicación/servicios/usuario.servicio');
-const { Usuario, Rol } = require('../../../Infraestructura/modelos');
+const { Usuario } = require('../../../Infraestructura/modelos');
 
 async function postUsuario(req, res, next) {
   try {
@@ -10,27 +10,55 @@ async function postUsuario(req, res, next) {
 
 async function getUsuarios(req, res, next) {
   try {
-    const { q, pagina = 1, limite = 10, estado } = req.query;
-    const filtro = { eliminado: { $ne: true } };
+    // Soporta ambos nombres por compatibilidad
+    const q = req.query.q || '';
+    const page = Number(req.query.page ?? req.query.pagina ?? 1);
+    const limit = Number(req.query.limit ?? req.query.limite ?? 10);
+    const estado = req.query.estado;
+
+    const filtros = { eliminado: { $ne: true } };
     if (q) {
-      filtro.$or = [
-        { nombres: new RegExp(q, 'i') },
-        { apellidos: new RegExp(q, 'i') },
-        { username: new RegExp(q, 'i') },
-        { email: new RegExp(q, 'i') },
-        { identificacion: new RegExp(q, 'i') },
+      filtros.$or = [
+        { nombres: { $regex: q, $options: 'i' } },
+        { apellidos: { $regex: q, $options: 'i' } },
+        { username: { $regex: q, $options: 'i' } },
+        { email: { $regex: q, $options: 'i' } },
+        { identificacion: { $regex: q, $options: 'i' } },
       ];
     }
-    if (estado) filtro.status = estado;
+    if (estado) filtros.status = estado;
 
-    const skip = (Number(pagina) - 1) * Number(limite);
+    const skip = (page - 1) * limit;
+
     const [items, total] = await Promise.all([
-      Usuario.find(filtro).select('-passwordHash').skip(skip).limit(Number(limite)).lean(),
-      Usuario.countDocuments(filtro)
+      Usuario.find(filtros)
+        .select('-passwordHash')
+        .populate('rolId') // <-- importante para traer nombre del rol
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Usuario.countDocuments(filtros),
     ]);
-    res.json({ items, total, pagina: Number(pagina), limite: Number(limite) });
+
+    // Mapea al contrato esperado por el frontend
+    const data = items.map(u => ({
+      id: u._id.toString(),
+      nombres: u.nombres,
+      apellidos: u.apellidos,
+      identificacion: u.identificacion,
+      username: u.username,
+      email: u.email,
+      rol: u.rolId?.nombre || 'USUARIO', // <-- aquí sale ADMIN/USUARIO
+      status: u.status,
+      creadoEn: u.createdAt,
+    }));
+
+    res.json({ data, total, page, limit });
   } catch (err) { next(err); }
 }
+
+module.exports = { getUsuarios };
 
 async function getUsuarioPorId(req, res, next) {
   try {

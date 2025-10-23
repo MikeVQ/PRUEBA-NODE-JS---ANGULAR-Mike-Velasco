@@ -132,7 +132,35 @@ async function bienvenida({ usuarioId }) {
   const usuario = await Usuario.findById(usuarioId);
   if (!usuario) throw new Error('Usuario no encontrado');
 
+  // Última sesión (éxito o fallo)
   const ultima = await RegistroSesion.findOne({ usuarioId }).sort({ inicio: -1 });
+
+  // Ventana de 24h para "recientes"
+  const desde24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  // Fallos en últimas 24h
+  const intentosFallidosRecientes24h = await RegistroSesion.countDocuments({
+    usuarioId,
+    exito: false,
+    inicio: { $gte: desde24h }
+  });
+
+  // Fallos desde el último login exitoso
+  const ultimoExito = await RegistroSesion.findOne({ usuarioId, exito: true }).sort({ inicio: -1 });
+  let intentosFallidosDesdeUltimoExito = 0;
+  if (ultimoExito) {
+    intentosFallidosDesdeUltimoExito = await RegistroSesion.countDocuments({
+      usuarioId,
+      exito: false,
+      inicio: { $gt: ultimoExito.inicio }
+    });
+  } else {
+    // Si nunca hubo éxito, contamos todos los fallos
+    intentosFallidosDesdeUltimoExito = await RegistroSesion.countDocuments({
+      usuarioId,
+      exito: false
+    });
+  }
 
   return {
     usuario: {
@@ -141,7 +169,7 @@ async function bienvenida({ usuarioId }) {
       email: usuario.email,
       username: usuario.username,
       status: usuario.status,
-      intentosFallidos: usuario.intentosFallidos || 0,
+      intentosFallidos: usuario.intentosFallidos || 0, // histórico de la cuenta de reintentos, se resetea al éxito
     },
     ultimaSesion: ultima
       ? {
@@ -150,8 +178,14 @@ async function bienvenida({ usuarioId }) {
           exito: ultima.exito,
           mensaje: ultima.mensaje,
         }
-      : null
+      : null,
+
+    // NUEVOS CAMPOS (no rompen compatibilidad)
+    recientes24hDesde: desde24h,
+    intentosFallidosRecientes24h,
+    intentosFallidosDesdeUltimoExito,
   };
 }
+
 
 module.exports = { login, logout, bienvenida };

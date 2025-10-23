@@ -62,27 +62,47 @@ async function crearUsuario(dto) {
 }
 
 async function actualizarUsuario(id, cambios, actor) {
-  // actor: { id, rolNombre } para reglas de autorización
+  // actor: { id, rolNombre }
   const usuario = await Usuario.findOne({ _id: id, eliminado: { $ne: true } });
   if (!usuario) throw new Error('Usuario no encontrado');
 
-  // Reglas: admin puede editar a todos menos a otros admins; usuario normal solo su propio perfil
   const actorEsAdmin = actor?.rolNombre === 'ADMIN';
+
+  // Regla base: usuario normal solo su propio perfil
   if (!actorEsAdmin && actor?.id !== usuario._id.toString()) {
     throw new Error('No autorizado para actualizar este usuario.');
   }
 
+  // --- GUARD ROBUSTO: ADMIN no edita a otro ADMIN (salvo a sí mismo) ---
+  // Buscamos el _id del rol ADMIN y comparamos por ObjectId (evita problemas con populate/nombres)
+  const rolAdmin = await Rol.findOne({ nombre: 'ADMIN', eliminado: { $ne: true } }, { _id: 1 });
+  const objetivoEsAdmin = rolAdmin && usuario.rolId?.toString() === rolAdmin._id.toString();
+
+  if (objetivoEsAdmin && actor?.id !== usuario._id.toString()) {
+    throw new Error('Un ADMIN no puede editar a otro ADMIN.');
+  }
+  // ---------------------------------------------------------------------
+
+  // Cambio de rol (solo ADMIN). Mantén tu política anti-escalado
   if (cambios.rolNombre) {
     if (!actorEsAdmin) throw new Error('Solo ADMIN puede cambiar roles');
-    const rol = await Rol.findOne({ nombre: cambios.rolNombre, eliminado: { $ne: true } });
-    if (!rol) throw new Error('Rol destino no existe');
-    // no permitir que un admin cambie a otro admin (regla solicitada)
-    if (cambios.rolNombre === 'ADMIN' && usuario.rolId.toString() !== rol._id.toString()) {
+    const rolDestino = await Rol.findOne({ nombre: cambios.rolNombre, eliminado: { $ne: true } });
+    if (!rolDestino) throw new Error('Rol destino no existe');
+
+    // Evitar escalar a ADMIN vía esta acción si no es el mismo usuario
+    if (rolDestino.nombre === 'ADMIN' && actor?.id !== usuario._id.toString()) {
       throw new Error('No se permite escalar a ADMIN desde esta acción.');
     }
-    usuario.rolId = rol._id;
+
+    // Si el objetivo es ADMIN y NO soy yo, también bloquea cambios de rol
+    if (objetivoEsAdmin && actor?.id !== usuario._id.toString()) {
+      throw new Error('Un ADMIN no puede cambiar el rol de otro ADMIN.');
+    }
+
+    usuario.rolId = rolDestino._id;
   }
 
+  // Username
   if (cambios.username) {
     if (!esUsernameValido(cambios.username)) throw new Error('Username inválido');
     const existe = await Usuario.exists({ _id: { $ne: usuario._id }, username: cambios.username, eliminado: { $ne: true } });
@@ -90,11 +110,13 @@ async function actualizarUsuario(id, cambios, actor) {
     usuario.username = cambios.username;
   }
 
+  // Password
   if (cambios.password) {
     if (!esPasswordValida(cambios.password)) throw new Error('Contraseña inválida');
     usuario.passwordHash = await bcrypt.hash(cambios.password, SALT_ROUNDS);
   }
 
+  // Identificación
   if (cambios.identificacion) {
     if (!esIdentificacionValida(cambios.identificacion)) throw new Error('Identificación inválida');
     const existe = await Usuario.exists({ _id: { $ne: usuario._id }, identificacion: cambios.identificacion, eliminado: { $ne: true } });
@@ -102,19 +124,33 @@ async function actualizarUsuario(id, cambios, actor) {
     usuario.identificacion = cambios.identificacion;
   }
 
+  // Estado
   if (typeof cambios.status === 'string') {
     if (!['ACTIVO', 'BLOQUEADO', 'INACTIVO'].includes(cambios.status)) {
       throw new Error('Estado inválido');
     }
-    // Solo admin puede cambiar estado de otros
     if (!actorEsAdmin && actor?.id !== usuario._id.toString()) {
       throw new Error('No autorizado para cambiar estado');
+    }
+    if (objetivoEsAdmin && actor?.id !== usuario._id.toString()) {
+      throw new Error('Un ADMIN no puede cambiar el estado de otro ADMIN.');
     }
     usuario.status = cambios.status;
   }
 
+  // Nombres / Apellidos
   if (cambios.nombres) usuario.nombres = cambios.nombres;
   if (cambios.apellidos) usuario.apellidos = cambios.apellidos;
+
+  // Email (opcional)
+  if (typeof cambios.email === 'string' && cambios.email.trim()) {
+    const em = cambios.email.trim().toLowerCase();
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!re.test(em)) throw new Error('Email inválido');
+    const ocupado = await Usuario.exists({ _id: { $ne: usuario._id }, email: em, eliminado: { $ne: true } });
+    if (ocupado) throw new Error('Email ya está en uso');
+    usuario.email = em;
+  }
 
   await usuario.save();
 
@@ -127,6 +163,7 @@ async function actualizarUsuario(id, cambios, actor) {
     status: usuario.status
   };
 }
+
 
 async function eliminarUsuarioLogico(id, actor) {
   const usuario = await Usuario.findOne({ _id: id, eliminado: { $ne: true } }).populate('rolId');
