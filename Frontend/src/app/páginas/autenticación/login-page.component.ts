@@ -157,15 +157,12 @@ export class LoginPageComponent implements OnInit {
   ngOnInit(): void { /* no-op */ }
 
   async onSubmit() {
-    // debug opcional:
-    // console.log('[login] onSubmit fired, form.valid=', this.form.valid, this.form.getRawValue());
-
+ 
     this.error.set('');
     this.cargando.set(true);
     try {
       const { identificador, password } = this.form.getRawValue();
       await this.auth.login(identificador, password);
-      // Si AuthService ya navega al dashboard, no necesitas más aquí.
     } catch (e: any) {
       this.error.set(e?.error?.error || 'Credenciales inválidas');
     } finally {

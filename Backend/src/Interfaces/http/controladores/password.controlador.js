@@ -5,7 +5,7 @@ const { esPasswordValida } = require('../../../Compartido/utilidades');
 
 async function postRecuperar(req, res, next) {
   try {
-    const { identificador } = req.body; // email o username
+    const { identificador } = req.body; 
     if (!identificador) return res.status(400).json({ error: 'identificador es requerido' });
 
     const u = await Usuario.findOne({
@@ -15,8 +15,7 @@ async function postRecuperar(req, res, next) {
     if (!u) return res.status(404).json({ error: 'Usuario no encontrado' });
 
     const token = jwt.sign({ sub: u._id.toString(), tipo: 'reset' }, process.env.JWT_SECRET, { expiresIn: '15m' });
-    // Aquí enviarías email con link: https://tuapp/reset?token=...
-    // Para pruebas devolvemos el token:
+
     res.json({ ok: true, token });
   } catch (err) { next(err); }
 }

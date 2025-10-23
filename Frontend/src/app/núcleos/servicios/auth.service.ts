@@ -45,22 +45,22 @@ export class AuthService {
     const resp = await this.http.post<LoginResp>(`${this.base}/auth/login`, { identificador, password }).toPromise();
     if (!resp?.token) throw new Error('Respuesta de login inválida');
 
-    // persistencia
+    
     this.setStored('token', resp.token);
     this.setStored('rol', resp.usuario.rol);
     this.setStored('username', resp.usuario.username);
     this.setStoredJson('usuario', resp.usuario);
 
-    // señales
+    
     this.token.set(resp.token);
     this.rol.set(resp.usuario.rol);
     this.username.set(resp.usuario.username);
     this.usuario.set(resp.usuario);
 
-    // reconstruir menú según el rol (pasa el rol explícitamente) ⬇️
+
     await this.menu.rebuild(resp.usuario.rol);
 
-    // navegación por rol
+   
     if (resp.usuario.rol === 'ADMIN') {
       await this.router.navigateByUrl('/dashboard');
     } else {

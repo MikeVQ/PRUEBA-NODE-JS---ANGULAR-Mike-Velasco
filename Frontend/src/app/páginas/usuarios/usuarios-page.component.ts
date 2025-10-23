@@ -215,21 +215,21 @@ export class UsuariosPageComponent implements OnInit {
   usuarioSesionesId = signal<string | null>(null);
   usuarioSesionesAlias = signal<string | null>(null);
 
-  // Form nonNullable → evita string|null
+  // Form nonNullable
   form = this.fb.nonNullable.group({
     nombres: this.fb.nonNullable.control('', { validators: [Validators.required] }),
     apellidos: this.fb.nonNullable.control('', { validators: [Validators.required] }),
     identificacion: this.fb.nonNullable.control('', {
       validators: [
         Validators.required,
-        Validators.pattern(/^[0-9]*$/),  // solo números
+        Validators.pattern(/^[0-9]*$/),
         Validators.minLength(10),
         Validators.maxLength(10)
       ]
     }),
     username: this.fb.nonNullable.control('', { validators: [Validators.required] }),
-    email: this.fb.nonNullable.control('', { validators: [Validators.email] }), // opcional
-    password: this.fb.nonNullable.control(''), // requerido solo en crear
+    email: this.fb.nonNullable.control('', { validators: [Validators.email] }), 
+    password: this.fb.nonNullable.control(''),
     rolNombre: this.fb.nonNullable.control<'USUARIO' | 'ADMIN'>('USUARIO', { validators: [Validators.required] }),
     status: this.fb.nonNullable.control<'ACTIVO' | 'INACTIVO' | 'BLOQUEADO'>('ACTIVO')
   });
@@ -297,7 +297,7 @@ export class UsuariosPageComponent implements OnInit {
       identificacion: u.identificacion,
       username: u.username,
       email: u.email || '',
-      password: '', // opcional al editar
+      password: '', 
       rolNombre: (u.rol === 'ADMIN' ? 'ADMIN' : 'USUARIO'),
       status: u.status,
     });
@@ -314,7 +314,7 @@ export class UsuariosPageComponent implements OnInit {
   }
 
   async guardar() {
-    this.form.markAllAsTouched(); // muestra errores
+    this.form.markAllAsTouched();
     if (this.form.invalid) { this.error.set('Revisa los campos resaltados antes de continuar'); return; }
 
     this.cargando.set(true);
@@ -340,7 +340,7 @@ export class UsuariosPageComponent implements OnInit {
 
         await this.svc.actualizar(this.idEdit()!, cambios).toPromise();
       } else {
-        // crear requiere password (cumpliendo reglas del backend)
+       
         if (!raw.password) { this.error.set('La contraseña es requerida para crear'); this.cargando.set(false); return; }
         await this.svc.crear(raw as any).toPromise();
         await this.cargar();

@@ -94,7 +94,6 @@ export class SesionesPanelComponent implements OnChanges {
   private cdr = inject(ChangeDetectorRef);
   private apiBase = environment.apiBaseUrl;
 
-  /** ⚠️ Cuando cambie este Input, recargamos automáticamente */
   @Input() usuarioId: string | null = null;
   @Input() aliasUsuario = '';
 
@@ -108,7 +107,7 @@ export class SesionesPanelComponent implements OnChanges {
     if (changes['usuarioId']) {
       const nuevo = changes['usuarioId'].currentValue as string | null;
       if (nuevo) {
-        this.load(nuevo);        // 🔁 carga automática al cambiar el usuario
+        this.load(nuevo); 
       } else {
         this.data.set(null);
         this.error.set('');
@@ -126,8 +125,6 @@ export class SesionesPanelComponent implements OnChanges {
     this.error.set('');
     this.cdr.markForCheck();
     try {
-      // Ajusta el endpoint si tu ruta difiere:
-      // yo asumo: GET /api/admin/sesiones?usuarioId=...
       const params = new HttpParams().set('usuarioId', uid);
       const resp = await this.http.get<SesionesResp>(`${this.apiBase}/admin/sesiones`, { params }).toPromise();
       this.data.set(resp ?? { usuarioId: uid, total: 0, activas: 0, items: [] });

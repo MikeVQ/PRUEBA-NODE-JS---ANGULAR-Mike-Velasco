@@ -11,7 +11,7 @@ type BienvenidaResp = {
     email: string;
     username: string;
     status: string;
-    intentosFallidos: number; // contador de reintentos que se resetea al éxito
+    intentosFallidos: number;
   };
   ultimaSesion: {
     inicio: string;
@@ -20,10 +20,9 @@ type BienvenidaResp = {
     mensaje: string;
   } | null;
 
-  // NUEVOS CAMPOS que añadimos en el backend
-  recientes24hDesde?: string;                 // ISO de la ventana de 24h
-  intentosFallidosRecientes24h?: number;      // fallos en últimas 24h
-  intentosFallidosDesdeUltimoExito?: number;  // fallos desde el último login exitoso
+  recientes24hDesde?: string;
+  intentosFallidosRecientes24h?: number; 
+  intentosFallidosDesdeUltimoExito?: number; 
 };
 
 @Component({

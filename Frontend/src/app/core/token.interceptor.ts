@@ -1,9 +1,8 @@
 import { inject } from '@angular/core';
 import { HttpInterceptorFn } from '@angular/common/http';
-import { AuthService } from '../núcleos/servicios/auth.service'; // 👈 OJO a la ruta y a la tilde en "núcleos"
-
+import { AuthService } from '../núcleos/servicios/auth.service'; 
 export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
-  const auth = inject(AuthService) as AuthService; // 👈 tipamos para evitar "unknown"
+  const auth = inject(AuthService) as AuthService;
   const t = auth.token();
 
   const url = req.url.toLowerCase();

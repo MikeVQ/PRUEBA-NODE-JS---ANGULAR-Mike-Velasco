@@ -1,4 +1,4 @@
-// src/Aplicación/servicios/autentificacion.servicio.js
+
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Usuario, RegistroSesion, Rol } = require('../../Infraestructura/modelos');
@@ -15,7 +15,6 @@ async function login({ identificador, password, ip, userAgent }) {
     eliminado: { $ne: true }
   });
 
-  // Log de intento fallido si no existe
   if (!usuario) {
     await RegistroSesion.create({
       usuarioId: null,
@@ -30,7 +29,6 @@ async function login({ identificador, password, ip, userAgent }) {
     throw new Error('Credenciales inválidas');
   }
 
-  // Bloqueado
   if (usuario.status === 'BLOQUEADO') {
     await RegistroSesion.create({
       usuarioId: usuario._id,
@@ -45,7 +43,7 @@ async function login({ identificador, password, ip, userAgent }) {
     throw new Error('Usuario bloqueado');
   }
 
-  // contraseña
+ 
   const ok = await bcrypt.compare(password, usuario.passwordHash);
   if (!ok) {
     usuario.intentosFallidos = (usuario.intentosFallidos || 0) + 1;
@@ -72,17 +70,15 @@ async function login({ identificador, password, ip, userAgent }) {
     throw new Error(mensaje);
   }
 
-  // Reset intentos al éxito
   usuario.intentosFallidos = 0;
   await usuario.save();
 
-  // Cerrar otras sesiones activas (solo 1 activa)
+
   await RegistroSesion.updateMany(
     { usuarioId: usuario._id, activo: true },
     { $set: { activo: false, fin: new Date() } }
   );
 
-  // Crear sesión
   const reg = await RegistroSesion.create({
     usuarioId: usuario._id,
     inicio: new Date(),
@@ -93,7 +89,6 @@ async function login({ identificador, password, ip, userAgent }) {
     activo: true
   });
 
-  // Token
   const rol = await Rol.findById(usuario.rolId);
   const payload = {
     sub: usuario._id.toString(),
@@ -132,20 +127,18 @@ async function bienvenida({ usuarioId }) {
   const usuario = await Usuario.findById(usuarioId);
   if (!usuario) throw new Error('Usuario no encontrado');
 
-  // Última sesión (éxito o fallo)
   const ultima = await RegistroSesion.findOne({ usuarioId }).sort({ inicio: -1 });
 
-  // Ventana de 24h para "recientes"
+
   const desde24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-  // Fallos en últimas 24h
   const intentosFallidosRecientes24h = await RegistroSesion.countDocuments({
     usuarioId,
     exito: false,
     inicio: { $gte: desde24h }
   });
 
-  // Fallos desde el último login exitoso
+
   const ultimoExito = await RegistroSesion.findOne({ usuarioId, exito: true }).sort({ inicio: -1 });
   let intentosFallidosDesdeUltimoExito = 0;
   if (ultimoExito) {
@@ -155,7 +148,7 @@ async function bienvenida({ usuarioId }) {
       inicio: { $gt: ultimoExito.inicio }
     });
   } else {
-    // Si nunca hubo éxito, contamos todos los fallos
+
     intentosFallidosDesdeUltimoExito = await RegistroSesion.countDocuments({
       usuarioId,
       exito: false
@@ -169,7 +162,7 @@ async function bienvenida({ usuarioId }) {
       email: usuario.email,
       username: usuario.username,
       status: usuario.status,
-      intentosFallidos: usuario.intentosFallidos || 0, // histórico de la cuenta de reintentos, se resetea al éxito
+      intentosFallidos: usuario.intentosFallidos || 0, 
     },
     ultimaSesion: ultima
       ? {
@@ -180,7 +173,6 @@ async function bienvenida({ usuarioId }) {
         }
       : null,
 
-    // NUEVOS CAMPOS (no rompen compatibilidad)
     recientes24hDesde: desde24h,
     intentosFallidosRecientes24h,
     intentosFallidosDesdeUltimoExito,

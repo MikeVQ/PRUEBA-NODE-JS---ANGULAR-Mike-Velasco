@@ -5,7 +5,7 @@ const { getIndicadores, getSesionesUsuario } = require('../controladores/admin.c
 const r = Router();
 
 r.get('/indicadores', requiereAuth, requiereRol('ADMIN'), getIndicadores);
-// 👇 NUEVO
+
 r.get('/sesiones', requiereAuth, requiereRol('ADMIN'), getSesionesUsuario);
 
 module.exports = r;

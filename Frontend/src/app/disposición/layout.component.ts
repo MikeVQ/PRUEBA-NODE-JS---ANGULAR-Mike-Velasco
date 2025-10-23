@@ -54,7 +54,6 @@ export class LayoutComponent implements OnInit {
   auth = inject(AuthService);
 
   async ngOnInit() {
-    // Construye el menú según el rol actual al montar el layout (útil tras refresh del navegador)
     const rolActual = (this.auth.rol() ?? 'USUARIO') as 'ADMIN' | 'USUARIO';
     await this.menu.rebuild(rolActual);
   }

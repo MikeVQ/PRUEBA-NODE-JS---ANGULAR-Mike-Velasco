@@ -9,7 +9,6 @@ export const adminGuard: CanActivateFn = () => {
   const isAdmin = auth.isLoggedIn() && auth.rol() === 'ADMIN';
 
   if (!isAdmin) {
-    // feedback rápido en la consola para ver si te está bloqueando
     console.warn('[adminGuard] acceso denegado. rol:', auth.rol());
     router.navigateByUrl('/inicio');
     return false;

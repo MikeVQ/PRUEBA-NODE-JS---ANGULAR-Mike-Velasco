@@ -10,7 +10,7 @@ async function postUsuario(req, res, next) {
 
 async function getUsuarios(req, res, next) {
   try {
-    // Soporta ambos nombres por compatibilidad
+  
     const q = req.query.q || '';
     const page = Number(req.query.page ?? req.query.pagina ?? 1);
     const limit = Number(req.query.limit ?? req.query.limite ?? 10);
@@ -33,7 +33,7 @@ async function getUsuarios(req, res, next) {
     const [items, total] = await Promise.all([
       Usuario.find(filtros)
         .select('-passwordHash')
-        .populate('rolId') // <-- importante para traer nombre del rol
+        .populate('rolId')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -41,7 +41,7 @@ async function getUsuarios(req, res, next) {
       Usuario.countDocuments(filtros),
     ]);
 
-    // Mapea al contrato esperado por el frontend
+
     const data = items.map(u => ({
       id: u._id.toString(),
       nombres: u.nombres,
@@ -49,7 +49,7 @@ async function getUsuarios(req, res, next) {
       identificacion: u.identificacion,
       username: u.username,
       email: u.email,
-      rol: u.rolId?.nombre || 'USUARIO', // <-- aquí sale ADMIN/USUARIO
+      rol: u.rolId?.nombre || 'USUARIO', 
       status: u.status,
       creadoEn: u.createdAt,
     }));

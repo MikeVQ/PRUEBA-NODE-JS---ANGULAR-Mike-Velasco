@@ -1,15 +1,5 @@
 const { RegistroSesion, Usuario } = require('../../../Infraestructura/modelos');
 
-/**
- * GET /api/sesiones
- * Solo ADMIN.
- * Query:
- *  - usuarioId (obligatorio)
- *  - page (opcional, default 1)
- *  - limit (opcional, default 20)
- *  - exito (opcional: "true" | "false")
- *  - activo (opcional: "true" | "false")
- */
 async function getSesiones(req, res, next) {
   try {
     const { usuarioId, exito, activo } = req.query;

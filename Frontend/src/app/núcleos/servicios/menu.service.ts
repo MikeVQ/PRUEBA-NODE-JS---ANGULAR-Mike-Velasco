@@ -25,7 +25,7 @@ export class MenuService {
 
       this.items.set((resp ?? []).sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0)));
     } catch {
-      // Fallback visible si aún no tienes /menu en backend
+      
       const fallback: MenuItem[] = rol === 'ADMIN'
         ? [
             { id: 'inicio', texto: 'Bienvenida', ruta: '/inicio', orden: 1 },

@@ -1,9 +1,6 @@
 const { Usuario, RegistroSesion } = require('../../../Infraestructura/modelos');
 const { Types } = require('mongoose');
 
-/* =========================
-   Utilidades de fecha (UTC)
-   ========================= */
 function startOfUtcDay(d = new Date()) {
   const x = new Date(d);
   x.setUTCHours(0, 0, 0, 0);
@@ -18,29 +15,22 @@ function subUtcDays(date, days) {
   return addDays(date, -days);
 }
 
-/* =========================
-   GET /api/admin/indicadores
-   ========================= */
 async function getIndicadores(req, res, next) {
   try {
-    // Usuarios por estado
     const [activos, inactivos, bloqueados] = await Promise.all([
       Usuario.countDocuments({ eliminado: { $ne: true }, status: 'ACTIVO' }),
       Usuario.countDocuments({ eliminado: { $ne: true }, status: 'INACTIVO' }),
       Usuario.countDocuments({ eliminado: { $ne: true }, status: 'BLOQUEADO' }),
     ]);
 
-    // Sesiones activas
     const sesionesActivas = await RegistroSesion.countDocuments({ activo: true });
 
-    // Intentos fallidos últimas 24h
     const hace24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const intentosFallidos24h = await RegistroSesion.countDocuments({
       exito: false,
       inicio: { $gte: hace24h },
     });
 
-    // Top fallos por usuario últimos 7 días
     const hoy0 = startOfUtcDay();
     const hace7 = subUtcDays(hoy0, 7);
     const topFallosAgg = await RegistroSesion.aggregate([
@@ -68,7 +58,6 @@ async function getIndicadores(req, res, next) {
       },
     ]);
 
-    // Serie por día (7 días) de fallos
     const fallosAgg = await RegistroSesion.aggregate([
       { $match: { exito: false, inicio: { $gte: hace7 } } },
       {
@@ -84,7 +73,6 @@ async function getIndicadores(req, res, next) {
       { $sort: { '_id.y': 1, '_id.m': 1, '_id.d': 1 } },
     ]);
 
-    // Normaliza a un arreglo continuo de 7 días
     const serie = [];
     for (let i = 6; i >= 0; i--) {
       const d = subUtcDays(hoy0, i);
@@ -114,10 +102,6 @@ async function getIndicadores(req, res, next) {
   }
 }
 
-/* ===========================================
-   GET /api/admin/sesiones?usuarioId=...&page&limit
-   Lista las sesiones de un usuario (solo ADMIN)
-   =========================================== */
 async function getSesionesUsuario(req, res, next) {
   try {
     const { usuarioId, page = 1, limit = 20 } = req.query;
@@ -127,7 +111,6 @@ async function getSesionesUsuario(req, res, next) {
     }
     const uid = new Types.ObjectId(usuarioId);
 
-    // Verifica que el usuario exista y no esté eliminado
     const user = await Usuario.findOne({ _id: uid, eliminado: { $ne: true } })
       .select('username nombres apellidos')
       .lean();

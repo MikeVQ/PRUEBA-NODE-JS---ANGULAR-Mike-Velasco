@@ -33,17 +33,17 @@ export class UsuariosService {
 
   return this.http.get<any>(`${this.base}/usuarios`, { params }).pipe(
     map((resp: any) => {
-      // si el backend devuelve array directo
+     
       if (Array.isArray(resp)) {
         return { data: resp, page, limit, total: resp.length };
       }
 
-      // si devuelve un objeto con 'data'
+      
       if (resp && Array.isArray(resp.data)) {
         return resp;
       }
 
-      // fallback
+   
       return { data: [], page, limit, total: 0 };
     })
   );
@@ -60,7 +60,7 @@ export class UsuariosService {
     identificacion: string;
     username: string;
     password: string;
-    rolNombre?: string; // 'ADMIN' | 'USUARIO' (default USUARIO)
+    rolNombre?: string; 
   }) {
     return this.http.post<UsuarioDto>(`${this.base}/usuarios`, payload);
   }

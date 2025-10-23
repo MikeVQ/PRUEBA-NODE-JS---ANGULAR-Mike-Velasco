@@ -142,17 +142,16 @@ export class DashboardPageComponent implements OnInit {
   private http = inject(HttpClient);
   data = signal<IndicadoresResp | null>(null);
   error = signal('');
-  Math = Math; // si quisieras usar Math.* desde el template
-  private H = 56; // altura del área de barras (px)
+  Math = Math; 
+  private H = 56; 
 
-  // máximo de la serie para escalar (al menos 1)
+
   maxY = computed(() => {
     const serie = this.data()?.fallosPorDia7d ?? [];
     const max = Math.max(0, ...serie.map(s => s.fallos));
     return Math.max(1, max);
   });
 
-  // altura escalada y "clamp" para que nunca se salga del contenedor
   h(valor: number): number {
     const scaled = Math.round((valor / this.maxY()) * this.H);
     return Math.max(4, Math.min(this.H, scaled));
